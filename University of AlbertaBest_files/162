@@ -1,0 +1,99 @@
+
+      (function() {
+        
+      var visitorTrackingIdCookieName = 'clive-visitor-tid-162';
+      
+      // Source: https://www.w3schools.com/js/js_cookies.asp
+      function getCookie(cname, cookieString) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(cookieString);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+        
+      function getCookieDomain() {
+        var host = window.location.hostname;
+      
+        // Detect IP address
+        if (!isNaN(host.replace(/\./gi, '')))
+          return null;
+    
+        // Detect a machine name
+        const parts = host.split('.');
+        const len = parts.length;
+        if (len < 2)
+          return null;
+    
+        // Return last parts of the domain name
+        return '.' + parts[len - 2] + '.' + parts[len - 1];
+      }
+      
+      function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = "expires="+ d.toUTCString();
+        var cookieDomain = getCookieDomain();
+        var domainPart = cookieDomain ? ';Domain=' + encodeURIComponent(cookieDomain) : '';
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/" + domainPart;
+        
+        // If cookie fails to get set on domain, attempt to set cookie on subdomain 
+        if (!getCookie(cname, document.cookie))
+          document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }    
+      
+      function setVisitorTrackingIdCookie(visitorTrackingId) {
+        setCookie(visitorTrackingIdCookieName, visitorTrackingId, 3650);
+      }
+    
+      function determineVisitorTrackingId() {
+        var visitorTrackingId = getCookie(visitorTrackingIdCookieName, document.cookie);
+          
+        if (!visitorTrackingId) {
+          visitorTrackingId = 'kuttkokg4cr8hzjdpp7fzlf72u7kq5wvdv45yh5ly8dm4lkgrgxaur5svuz3qwoz';
+          setVisitorTrackingIdCookie('kuttkokg4cr8hzjdpp7fzlf72u7kq5wvdv45yh5ly8dm4lkgrgxaur5svuz3qwoz');
+        }    
+        
+        return visitorTrackingId;
+      }
+    
+      const ajax = function(url, method, postBody, callbacks, withCredentials) {
+        var request = new XMLHttpRequest();
+        request.withCredentials = withCredentials === false ? false : true;
+        request.open(method, url, true);
+
+        if (callbacks) {
+          request.onloadstart = callbacks.onloadstart;
+          request.onprogress = callbacks.onprogress;
+          request.onload = callbacks.onload;
+          request.onerror = callbacks.onerror;
+          request.onloadend = callbacks.onloadend;
+          request.ontimeout = callbacks.ontimeout;
+          request.onabort = callbacks.onabort;
+        }
+        
+        request.setRequestHeader('Clive-Referer', window.location.href);
+        request.send(postBody);
+      };
+    
+        var visitorTrackingId = determineVisitorTrackingId();
+        var pageTitleEscaped = encodeURIComponent(document.title);
+        ajax('https://live.clive.cloud/page-views/162/visitors/' + visitorTrackingId + '/register?t=' + pageTitleEscaped, 'GET', null, {
+            onload: function(e) {
+              if (e.target.status === 200) {
+                var result = JSON.parse(e.target.responseText);
+                if (result['success'] && result['newTrackingId'])
+                  setVisitorTrackingIdCookie(result['newTrackingId']);
+              } 
+            }
+        });
+      })();
+    
